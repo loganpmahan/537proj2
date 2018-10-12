@@ -1,4 +1,4 @@
-typedef struct Queue;
+typedef struct Queue Queue;
 
 Queue* createStringQueue(int);
 void enqueueString(Queue*, char*);
