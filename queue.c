@@ -69,6 +69,7 @@ char* dequeueString(Queue* queue) {
     queue->first = incrementVal(queue->first, queue->size);
     pthread_cond_signal(&(queue->full));   
     pthread_mutex_unlock(&(queue->mutex));
+    return ret;
 }
 
 void printQueueStats(Queue* queue) {
