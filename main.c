@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 
 int queueSize = 10;
 int buffSize = 200;
@@ -26,7 +27,7 @@ void *reader(){
 		if(count < buffSize){
 			char* line = malloc(1 + sizeof(char) * count); 
 			strncpy(line, buff, count);
-			*(line+count) = "\0";
+			*(line+count) = '\0';
 			enqueueString(initial, line);
 		}
 		count = read(0, buff, buffSize);
@@ -37,21 +38,21 @@ void *reader(){
 void *munch1(){
 	char* string = dequeueString(initial);
 	char* temp = string;
-	while((temp = strchr(temp, " ")) != NULL){
-		temp* = "*";
+	while((temp = strchr(temp, ' ')) != NULL){
+		*(temp) = '*';
 		temp++;
 	}
-	enqueue(intermediate, string);
+	enqueueString(intermediate, string);
 }
 
 void *munch2(){
 	char* string = dequeueString(intermediate);
 	for(int i = 0; i < buffSize; i++){
 		if(string[i] >= 'a' && string[i] <= 'z'){
-			toupper(string[i]);
+			string[i] = toupper(string[i]);
 		}
 	}
-	enqueueString(final);
+	enqueueString(final, string);
 }
 
 void *writer(){
