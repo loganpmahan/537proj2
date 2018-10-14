@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <pthread.h>
 
 int queueSize = 10;
 int buffSize = 20;
@@ -32,7 +33,7 @@ int main(){
 void *reader(){
 	char buff[buffSize];
 	while(fgets(buff, buffSize, stdin) != NULL){
-		printf("%s\n", buff);
+//		printf("%s\n", buff);
 		if((strlen(buff) < (size_t)buffSize) && (buff[buffSize] == '\0')){
 			char* line = malloc(1 + strlen(buff));
 			strncpy(line, buff, strlen(buff));
@@ -82,7 +83,7 @@ void *writer(){
 	while((final->enqueueCount) > (final->dequeueCount)){
 	print = dequeueString(final);
 	// print out all contents of the queue
-	fprintf(stdout, "%s\n", print);
+	fprintf(stdout, "%s", print);
 	}
 	return NULL;
 }
