@@ -6,8 +6,8 @@
 #include <ctype.h>
 #include <pthread.h>
 
-int queueSize = 10;
-int buffSize = 1024;
+const int queueSize = 10;
+const int buffSize = 1024;
 Queue* initial;
 Queue* intermediate;
 Queue* final;
@@ -21,45 +21,64 @@ int main(){
 	initial = createStringQueue(queueSize);
 	intermediate = createStringQueue(queueSize);
 	final = createStringQueue(queueSize);
-	reader();
-	munch1();
-	munch2();
-	writer();
-	// create reader thread
+    
+    pthread_t reader_t, munch1_t, munch2_t, writer_t;
+    
+    pthread_create(&reader_t, NULL, reader, NULL);
+    pthread_create(&munch1_t, NULL, munch1, NULL);
+    pthread_create(&munch2_t, NULL, munch2, NULL);
+    pthread_create(&writer_t, NULL, writer, NULL);
+
+    pthread_join(reader_t, NULL);
+    pthread_join(munch1_t, NULL);
+    pthread_join(munch2_t, NULL);
+    pthread_join(writer_t, NULL);
+
+    printQueueStats(initial);
+    printQueueStats(intermediate);
 	printQueueStats(final);
 }
 // create reader thread and send std input
 
 void *reader(){
-	char buff[buffSize];
 //	fgetc, check for null pointer, end of line \n, EOF,  or if there is no character (empty file)
 //	What about
 //	Run against an empty file with no end line
 	int i = 0;
 	char c;
+    char* buff = (char*) malloc(buffSize * sizeof(char));
+    if(buff == NULL) {
+        fprintf(stderr, "Out of Memory.\n");
+        exit(1);
+    }
 	while((c = fgetc(stdin)) != EOF){
-//		printf("%s\n", buff);
-//		if((strlen(buff) < (size_t)buffSize) && (buff[buffSize] == '\0')){
-		if(i < buffSize-1){
-
+		if(i <= buffSize-1){
 			if(c == '\n'){
 				buff[i] = '\0';
-				char* line = malloc(sizeof(char)*i);
-//				char* line = malloc(1 + strlen(buff));
-				strncpy(line, buff, strlen(buff));
-//				printf("%s\n", line);
-				enqueueString(initial, line);
+				enqueueString(initial, buff);
+                buff = (char*) malloc(buffSize * sizeof(char));
+                if (buff == NULL) {
+                    fprintf(stderr, "Out of memory.\n");
+                    exit(1);
+                }
 				i = 0;
-			}
+			} else {
 			buff[i] = c;
 			i++;
-		}else if((i > buffSize-1) && (c == '\n')){
-			printf("Error: Input exceeded buffer size.");
+            }
+		}else{
+			fprintf(stderr, "Error: Input exceeded buffer size.\n");
+            while((c = fgetc(stdin)) != '\n' && c != EOF);
+            i = 0;
+            buff = (char*) malloc(buffSize * sizeof(char));
+            if (buff == NULL) {
+                fprintf(stderr, "Out of memory.\n");
+                exit(1);
+            }
 		}
-			
-	}
-	return NULL;
-
+	} 
+    enqueueString(initial, NULL);
+	pthread_exit(0);
 }
 
 // make sure enqueue count = dequeue count for new struct
@@ -67,39 +86,41 @@ void *reader(){
 void *munch1(){
 	char* string;
 	char* temp;
-	while((initial->enqueueCount) > (intermediate->enqueueCount)){
+	do {
 		string = dequeueString(initial);
 		temp = string;
-		while((temp = strchr(temp, ' ')) != NULL){
+		while(string != NULL && (temp = strchr(temp, ' ')) != NULL){
 			*(temp) = '*';
 			temp++;
 		}
 		enqueueString(intermediate, string);
-	}
-	return NULL;
+	} while (string != NULL);
+	pthread_exit(0);
 }
 
 void *munch2(){
 	char* string;
-	while((intermediate->enqueueCount) > (final->enqueueCount)){
+    do {
 		string = dequeueString(intermediate);
-		for(int i = 0; i < buffSize; i++){
+		for(int i = 0; i < buffSize && string != NULL; i++){
 			if(string[i] >= 'a' && string[i] <= 'z'){
 				string[i] = toupper(string[i]);
 			}
 		}
 		enqueueString(final, string);
-	}
-	return NULL;
+	} while (string != NULL);
+	pthread_exit(0);
 }
 
 
 void *writer(){
 	char* print;
-	while((final->enqueueCount) > (final->dequeueCount)){
+	do {
 		print = dequeueString(final);
-	// print out all contents of the queue
-		fprintf(stdout, "%s", print);
-	}
-	return NULL;
+	    if (print == NULL)
+            break;
+		fprintf(stdout, "%s\n", print);
+        free(print);
+	} while (print != NULL);
+	pthread_exit(0);
 }
