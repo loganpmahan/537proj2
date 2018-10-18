@@ -20,11 +20,14 @@ typedef struct Queue{
 Queue* createStringQueue(int size) {
     Queue* queue = (Queue*) malloc(sizeof(Queue));
     if (queue == NULL) {
+        free(queue);
         fprintf(stderr, "Out of memory\n");
         return NULL;
     }
     queue->buff = malloc(size * sizeof(char*));
     if (queue->buff == NULL) {
+        free(queue->buff);
+        free(queue);
         fprintf(stderr, "Out of memory\n");
         return NULL;
     }
