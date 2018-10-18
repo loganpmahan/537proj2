@@ -30,6 +30,10 @@ int main(){
 	qh->intermediate = createStringQueue(queueSize);
 	qh->final = createStringQueue(queueSize);
     
+    if (qh->initial == NULL || qh->intermediate == NULL || qh->final == NULL) {
+        exit(1);
+    }
+    
     pthread_t reader_t, munch1_t, munch2_t, writer_t;
     
     pthread_create(&reader_t, NULL, reader, (void*) qh);
