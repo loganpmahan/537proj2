@@ -76,7 +76,11 @@ void *reader(){
                 exit(1);
             }
 		}
-	} 
+	}
+    if (i != 0) {
+        buff[i] = '\0';
+        enqueueString(initial, buff);
+    } 
     enqueueString(initial, NULL);
 	pthread_exit(0);
 }
