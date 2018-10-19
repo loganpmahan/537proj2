@@ -168,12 +168,15 @@ void *munch2(void* arg){
 void *writer(void* arg){
 	QueueHolder *qh = (QueueHolder*) arg;
     char* print;
+    int numStringsProcessed = 0;
 	do {
 		print = dequeueString(qh->final);
 	    if (print == NULL)
             break;
 		fprintf(stdout, "%s\n", print);
+        numStringsProcessed++;
         free(print);
 	} while (print != NULL);
+    fprintf(stdout, "Number of Strings Processed: %d\n", numStringsProcessed);
 	pthread_exit(0);
 }
