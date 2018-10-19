@@ -19,6 +19,9 @@ typedef struct Queue{
     pthread_cond_t empty;
 }Queue;
 
+/*
+* Creates and allocates a queue with the given size
+*/
 Queue* createStringQueue(int size) {
     // Allocate space for queue
     Queue* queue = (Queue*) malloc(sizeof(Queue));
@@ -55,6 +58,10 @@ int incrementVal(int val, int size) {
     return (val + 1) % size;
 }
 
+/*
+* Enqueue a string to a queue. Blocks when queue is full and only allows
+* one thread to enqueue/dequeue to a queue at one time
+*/
 void enqueueString(Queue* queue, char* str) {
     pthread_mutex_lock(&(queue->mutex));
 
@@ -75,6 +82,10 @@ void enqueueString(Queue* queue, char* str) {
     pthread_mutex_unlock(&(queue->mutex));    
 }
 
+/*
+* Dequeue a string from a queue. Blocks when queue is empty and only allows
+* one thread to enqueue/dequeue to a queue at one time
+*/
 char* dequeueString(Queue* queue) {
     pthread_mutex_lock(&(queue->mutex));
 
@@ -95,6 +106,9 @@ char* dequeueString(Queue* queue) {
     return ret;
 }
 
+/*
+* Prints out all the stats for the queue
+*/
 void printQueueStats(Queue* queue) {
     fprintf(stderr, "Enqueue Count: %d\n", queue->enqueueCount);
     fprintf(stderr, "Dequeue Count: %d\n", queue->dequeueCount);

@@ -17,21 +17,25 @@ typedef struct QueueHolder {
 }QueueHolder;
 
 const int queueSize = 10; // Size of the newly initialized queue
-const int buffSize = 1024; // Sets the buffer size to read input
+const int buffSize = 1024; // Size of buffer to read input
 
 void* reader();
 void* munch1();
 void* munch2();
 void* writer();
 
-// This method initializes the queue struct as well as the threads that the queues are
-// run to read the input data and change it accordingly
+/*
+* Initializes the queue struct as well as the threads that the queues are
+* run to read the input data and change it accordingly
+*/
 int main(){
     QueueHolder *qh = (QueueHolder*) malloc(sizeof(QueueHolder));
     if (qh == NULL) {
         fprintf(stderr, "Out of memory.\n");
         exit(1);
     }
+
+    // Initialize three queues for the threads
 	qh->initial = createStringQueue(queueSize);
 	qh->intermediate = createStringQueue(queueSize);
 	qh->final = createStringQueue(queueSize);
@@ -52,11 +56,18 @@ int main(){
     pthread_join(munch2_t, NULL);
     pthread_join(writer_t, NULL);    
 
+    fprintf(stderr, "-First queue stats-\n");
     printQueueStats(qh->initial);
+    fprintf(stderr, "-Second queue stats-\n");
     printQueueStats(qh->intermediate);
+    fprintf(stderr, "-Third queue stats-\n");
 	printQueueStats(qh->final);
 }
 
+/*
+* Reads in a line from stdin and enqueues it to the initial queue
+* Only accepts lines of size less than buffSize
+*/
 void *reader(void* arg){
     QueueHolder *qh = (QueueHolder*) arg;
 	int i = 0;
@@ -85,6 +96,7 @@ void *reader(void* arg){
             }
 		} else { // If buffer size is exceeded
 			fprintf(stderr, "Error: Input exceeded buffer size.\n");
+            // Flush the rest of the line
             while((c = fgetc(stdin)) != '\n' && c != EOF);
             i = 0;
             buff = (char*) malloc(buffSize * sizeof(char));
@@ -104,10 +116,16 @@ void *reader(void* arg){
             fprintf(stderr, "Error: Input exceeded buffer size.\n");
         }
     } 
+    
+    // Enqueues a NULL string to signal termination
     enqueueString(qh->initial, NULL);
 	pthread_exit(0);
 }
 
+/*
+* Gets a line from the initial queue and replaces spaces with "*" and sends
+* to the intermediate queue
+*/
 void *munch1(void* arg){
     QueueHolder *qh = (QueueHolder*) arg;
 	char* string;
@@ -125,6 +143,10 @@ void *munch1(void* arg){
 	pthread_exit(0);
 }
 
+/*
+* Gets a line from the intermediate queue and sets everything to uppercase
+* and sends to the final queue
+*/
 void *munch2(void* arg){
     QueueHolder *qh = (QueueHolder*) arg;
 	char* string;
@@ -140,7 +162,9 @@ void *munch2(void* arg){
 	pthread_exit(0);
 }
 
-
+/*
+* Gets a line from the final queue and writes it to stdin, then free it
+*/
 void *writer(void* arg){
 	QueueHolder *qh = (QueueHolder*) arg;
     char* print;
