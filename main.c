@@ -6,20 +6,23 @@
 #include <ctype.h>
 #include <pthread.h>
 
+// Created a struct to hold the queues that are being passed to each thread of code
 typedef struct QueueHolder {
     Queue* initial;
     Queue* intermediate;
     Queue* final;
 }QueueHolder;
 
-const int queueSize = 10;
-const int buffSize = 1024;
+const int queueSize = 10; // Size of the newly initialized queue
+const int buffSize = 1024; // Sets the buffer size to read input
 
 void* reader();
 void* munch1();
 void* munch2();
 void* writer();
 
+// This method initializes the queue struct as well as the threads that the queues are
+// run to read the input data and change it accordingly
 int main(){
     QueueHolder *qh = (QueueHolder*) malloc(sizeof(QueueHolder));
     if (qh == NULL) {
