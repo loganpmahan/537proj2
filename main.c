@@ -1,3 +1,6 @@
+// Written by:
+// Logan Mahan, NetID: lmahan, CSID: mahan
+// Sam Ware, NetID: sware2, CSID: sware
 #include "queue.h"
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,4 +1,6 @@
-//Written by Logan Mahan and Sam Ware
+// Written by:
+// Logan Mahan, NetID: lmahan, CSID: mahan
+// Sam Ware, NetID: sware2, CSID: sware
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -18,19 +20,20 @@ typedef struct Queue{
 }Queue;
 
 Queue* createStringQueue(int size) {
+    // Allocate space for queue
     Queue* queue = (Queue*) malloc(sizeof(Queue));
     if (queue == NULL) {
-        free(queue);
         fprintf(stderr, "Out of memory\n");
         return NULL;
     }
     queue->buff = malloc(size * sizeof(char*));
     if (queue->buff == NULL) {
-        free(queue->buff);
         free(queue);
         fprintf(stderr, "Out of memory\n");
         return NULL;
     }
+
+    // Initialize all values in queue to default;
     queue->size = size;
     queue->first = 0;
     queue->last = 0;
@@ -44,18 +47,29 @@ Queue* createStringQueue(int size) {
     return queue;
 }
 
+/*
+* Increment val so that it circles around to 0 on overflow of size
+* e.g. if val = size - 1, this would return 0
+*/
 int incrementVal(int val, int size) {
     return (val + 1) % size;
 }
 
 void enqueueString(Queue* queue, char* str) {
     pthread_mutex_lock(&(queue->mutex));
+
+    // Blocks when queue is full
     while (incrementVal(queue->last, queue->size) == queue->first) {
         queue->enqueueBlockCount++;
         pthread_cond_wait(&(queue->full), &(queue->mutex));
     }
     (queue->buff)[queue->last] = str;
-    queue->enqueueCount++;
+
+    // Doesn't increment enqueueCount on termination
+    if (str != NULL) {
+        queue->enqueueCount++;
+    }
+
     queue->last = incrementVal(queue->last, queue->size);
     pthread_cond_signal(&(queue->empty));
     pthread_mutex_unlock(&(queue->mutex));    
@@ -63,12 +77,18 @@ void enqueueString(Queue* queue, char* str) {
 
 char* dequeueString(Queue* queue) {
     pthread_mutex_lock(&(queue->mutex));
+
+    // Blocks when queue is empty
     while (queue->first == queue->last) {
         queue->dequeueBlockCount++;
         pthread_cond_wait(&(queue->empty), &(queue->mutex));
     }
     char* ret = (queue->buff)[queue->first];
-    queue->dequeueCount++;
+
+    // Doesn't increment dequeueCount on termination
+    if (ret != NULL) {
+        queue->dequeueCount++;
+    }
     queue->first = incrementVal(queue->first, queue->size);
     pthread_cond_signal(&(queue->full));   
     pthread_mutex_unlock(&(queue->mutex));
