@@ -56,7 +56,6 @@ int main(){
     printQueueStats(qh->intermediate);
 	printQueueStats(qh->final);
 }
-// create reader thread and send std input
 
 void *reader(void* arg){
     QueueHolder *qh = (QueueHolder*) arg;
@@ -103,8 +102,6 @@ void *reader(void* arg){
     enqueueString(qh->initial, NULL);
 	pthread_exit(0);
 }
-
-// make sure enqueue count = dequeue count for new struct
 
 void *munch1(void* arg){
     QueueHolder *qh = (QueueHolder*) arg;
