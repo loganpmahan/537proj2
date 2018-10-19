@@ -69,7 +69,7 @@ void *reader(void* arg){
     }
 	while((c = fgetc(stdin)) != EOF){
 		if(i <= buffSize-1){
-			if(c == '\n'){
+			if(c == '\n'){ // Detects the end of a line
 				buff[i] = '\0';
 				enqueueString(qh->initial, buff);
                 buff = (char*) malloc(buffSize * sizeof(char));
@@ -78,12 +78,12 @@ void *reader(void* arg){
                     enqueueString(qh->initial, NULL);
                     pthread_exit(0);
                 }
-				i = 0;
+				i = 0; 
 			} else {
-			buff[i] = c;
-			i++;
+			    buff[i] = c;
+			    i++;
             }
-		}else{
+		} else { // If buffer size is exceeded
 			fprintf(stderr, "Error: Input exceeded buffer size.\n");
             while((c = fgetc(stdin)) != '\n' && c != EOF);
             i = 0;
@@ -95,9 +95,14 @@ void *reader(void* arg){
             }
 		}
 	}
+    // If the EOF was encountered at the end of a line, enqueue the line
     if (i != 0) {
-        buff[i] = '\0';
-        enqueueString(qh->initial, buff);
+        if (i <= buffSize - 1) {
+            buff[i] = '\0';
+            enqueueString(qh->initial, buff);
+        } else {
+            fprintf(stderr, "Error: Input exceeded buffer size.\n");
+        }
     } 
     enqueueString(qh->initial, NULL);
 	pthread_exit(0);
@@ -110,6 +115,7 @@ void *munch1(void* arg){
 	do {
 		string = dequeueString(qh->initial);
 		temp = string;
+        // Finds every space in the line and replaces with '*'
 		while(string != NULL && (temp = strchr(temp, ' ')) != NULL){
 			*(temp) = '*';
 			temp++;
